@@ -1,5 +1,6 @@
 package th.ac.kmitl.it59070164;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,7 +21,7 @@ public class LoginFragment extends Fragment{
 
     SQLiteDatabase myDB;
     User user;
-
+    SharedPreferences sp;
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
@@ -28,9 +29,17 @@ public class LoginFragment extends Fragment{
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        myDB = getActivity().openOrCreateDatabase("my.db", Context.MODE_PRIVATE, null);
+        sp = getContext().getSharedPreferences("user", MODE_PRIVATE);
 
-        initLogin();
-        initRegisterBtn();
+        if(!sp.getString("name","error").equals("error")){
+            Log.d("LOGIN", "GOTO home");
+            getActivity().getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.main_view, new homefragment()).commit();
+        }
+        else {
+            initLogin();
+            initRegisterBtn();
+        }
     }
 
     void initLogin() {
@@ -49,6 +58,7 @@ public class LoginFragment extends Fragment{
                     Log.d("LOGIN", "Please fill out this form");
                 }
                 else{
+
                     Cursor myCursor = myDB.rawQuery("SELECT * FROM user", null);
                     Log.d("LOGIN", "Query");
                     while (myCursor.moveToNext()){
@@ -64,7 +74,7 @@ public class LoginFragment extends Fragment{
 
                                 user = new User(_useridSql, _nameSql, _ageSql, _passSql);
 
-                                SharedPreferences sp = getContext().getSharedPreferences("user", MODE_PRIVATE);
+
                                 sp.edit().putString("userid", _userIdStr).apply();
                                 sp.edit().putString("name", _nameSql).apply();
                                 sp.edit().putInt("age", _ageSql).apply();
@@ -73,6 +83,8 @@ public class LoginFragment extends Fragment{
                                 Log.d("LOGIN","SharedPreferences = "+ sp.getString("name","error"));
                             }
                             Log.d("LOGIN", "User = "+ user.getName());
+                            Log.d("LOGIN", "GOTO home");
+                            getActivity().getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.main_view, new homefragment()).commit();
                         } else {
                             Toast.makeText(getActivity(), "Invalid user or password", Toast.LENGTH_SHORT).show();
                             Log.d("LOGIN", "Invalid user or password");
